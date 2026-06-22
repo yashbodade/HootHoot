@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,7 +15,6 @@ type Role = "student" | "company";
 type Mode = "signin" | "signup";
 
 export default function ArenaAuthPage() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const defaultRole = (searchParams.get("role") as Role) || "student";
   const redirect = searchParams.get("redirect") || "/arena";
@@ -52,9 +51,8 @@ export default function ArenaAuthPage() {
         {
           onSuccess: () => {
             toast.success("Account created! Welcome to Hoot-Hoot.");
-            router.push(destination);
-            router.refresh();
-            setLoading(false);
+            // Hard redirect — works reliably in iframes, preview envs, and prod.
+            window.location.href = destination;
           },
           onError: (ctx) => {
             toast.error(ctx.error.message || "Could not create account.");
@@ -71,9 +69,7 @@ export default function ArenaAuthPage() {
         {
           onSuccess: () => {
             toast.success("Welcome back!");
-            router.push(destination);
-            router.refresh();
-            setLoading(false);
+            window.location.href = destination;
           },
           onError: (ctx) => {
             toast.error(ctx.error.message || "Invalid email or password.");
