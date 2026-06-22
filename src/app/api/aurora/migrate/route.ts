@@ -4,7 +4,7 @@
  * Protected by a secret token to prevent unauthorized schema changes.
  */
 import { NextResponse } from "next/server";
-import { auroraQuery } from "@/lib/db-aurora";
+import { auroraQuery, withAuroraConnection } from "@/lib/db-aurora";
 
 const MIGRATION_SQL = `
 -- ── Role enum for users ───────────────────────────────────────
@@ -187,8 +187,10 @@ export async function POST(req: Request) {
   }
 
   try {
-    // Split on semicolons but keep function bodies intact (they contain semicolons too)
-    await auroraQuery(MIGRATION_SQL);
+    // Use withAuroraConnection to run all DDL in a single client transaction
+    await withAuroraConnection(async (client) => {
+      await client.query(MIGRATION_SQL);
+    });
     return NextResponse.json({ success: true, message: "Aurora schema migrated successfully" });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
