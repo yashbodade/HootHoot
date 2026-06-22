@@ -1,14 +1,10 @@
-/**
- * _schema.ts — idempotent DDL run automatically on Vercel startup
- * (via src/instrumentation.ts) and by the /api/aurora/migrate route.
- *
- * Scope: Better Auth tables + feature tables ONLY.
- * The arena/company tables are owned by scripts/001-arena-schema.sql and are
- * intentionally NOT redefined here — redefining them caused column drift and a
- * "column user_id does not exist" failure. Every statement is IF NOT EXISTS so
- * this is safe to run on every cold start.
- */
-export const FULL_SCHEMA_SQL = `
+-- ============================================================
+-- 003-auth-and-features.sql
+-- Creates Better Auth tables + remaining feature tables on Aurora.
+-- Does NOT touch the arena/company tables created by 001 (they already
+-- match the application's server actions). Fully idempotent.
+-- ============================================================
+
 -- ── Better Auth core tables ───────────────────────────────────
 CREATE TABLE IF NOT EXISTS "user" (
   id              TEXT PRIMARY KEY,
@@ -127,4 +123,3 @@ CREATE TABLE IF NOT EXISTS broadcast_recipient (
 );
 CREATE INDEX IF NOT EXISTS broadcast_recipient_broadcast_idx ON broadcast_recipient("broadcastId");
 CREATE INDEX IF NOT EXISTS broadcast_recipient_status_idx    ON broadcast_recipient("broadcastId", status);
-`;
