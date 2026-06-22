@@ -43,7 +43,7 @@ export default function RootLayout({
         <link rel="preload" as="font" type="font/ttf" href="/fonts/Parkinsans-VariableFont_wght.ttf" crossOrigin="anonymous" />
         <link rel="preload" as="font" type="font/ttf" href="/fonts/SpaceGrotesk-VariableFont_wght.ttf" crossOrigin="anonymous" />
       </head>
-      <body className="relative">
+      <body className="relative" suppressHydrationWarning>
         <main>{children}</main>
       </body>
     </html>

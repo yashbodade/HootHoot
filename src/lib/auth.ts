@@ -34,6 +34,8 @@ export const auth = betterAuth({
     ...(process.env.VERCEL_URL ? [`https://${process.env.VERCEL_URL}`] : []),
     ...(process.env.VERCEL_BRANCH_URL ? [`https://${process.env.VERCEL_BRANCH_URL}`] : []),
     ...(process.env.NEXT_PUBLIC_APP_URL ? [process.env.NEXT_PUBLIC_APP_URL] : []),
+    // v0 preview URLs (vm-*.vusercontent.net) — for local testing in v0 IDE
+    "https://vm-v0-yashhhyb-02a0ba0b.vusercontent.net",
   ],
   rateLimit: {
     window: 60,
