@@ -7,7 +7,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { usePathname } from "next/navigation";
 import { useUser } from "@/context/UserContext";
 import { Button } from "../ui/button";
-import { LogIn, LogOut, Zap, Building2 } from "lucide-react";
+import { LogOut, Zap, Building2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import {
   DropdownMenu,
@@ -148,20 +148,8 @@ function Navbar() {
           {/* Right side */}
           <div className="flex items-center gap-2 md:gap-3">
 
-            {/* Auth */}
-            {!user ? (
-              <Button
-                asChild
-                variant="default"
-                size="sm"
-                className="h-9 px-4 md:h-10 md:px-6 text-sm font-semibold"
-              >
-                <Link href="/register">
-                  <LogIn className="w-4 h-4 mr-1.5" />
-                  Sign In
-                </Link>
-              </Button>
-            ) : (
+            {/* Auth — only show avatar when signed in; sign-in is at /arena/auth */}
+            {user && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -248,15 +236,6 @@ function Navbar() {
                 repo="BlyncWeb"
                 className="w-full justify-center"
               />
-
-              {!user && (
-                <Button asChild variant="outline" className="w-full h-10">
-                  <Link href="/register" onClick={close}>
-                    <LogIn className="w-4 h-4 mr-2" />
-                    Sign In
-                  </Link>
-                </Button>
-              )}
 
               {user && (
                 <div className="flex items-center gap-3 px-1">

@@ -1,11 +1,10 @@
 import { createAuthClient } from "better-auth/react";
 
-// Using relative baseURL works in all environments (local dev, preview, prod)
-// without needing BETTER_AUTH_URL to be set.
-export const authClient = createAuthClient({
-  baseURL: typeof window !== "undefined"
+// On the client: use the current origin (works for localhost, preview, prod).
+// During SSR: fall back to NEXT_PUBLIC_APP_URL (set on Vercel) or localhost.
+const baseURL =
+  typeof window !== "undefined"
     ? window.location.origin
-    : process.env.NEXTAUTH_URL ?? process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : "http://localhost:3000",
-});
+    : process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+
+export const authClient = createAuthClient({ baseURL });
