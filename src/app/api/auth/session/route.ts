@@ -1,10 +1,19 @@
 import { cookies } from 'next/headers';
 import { auroraPool } from '@/lib/db';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const cookieStore = await cookies();
-    const token = cookieStore.get('session_token')?.value;
+    // Check for token in cookies first (for browser requests)
+    let token = cookieStore.get('auth-token')?.value;
+
+    // If not in cookies, check Authorization header (for API requests)
+    if (!token) {
+      const authHeader = request.headers.get('authorization');
+      if (authHeader?.startsWith('Bearer ')) {
+        token = authHeader.slice(7);
+      }
+    }
 
     if (!token) {
       return new Response(JSON.stringify({ user: null }), { status: 401 });
