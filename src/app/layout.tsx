@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { siteConfig } from "@/config/site";
+import { SessionProvider } from "@/context/SessionContext";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
@@ -43,8 +44,10 @@ export default function RootLayout({
         <link rel="preload" as="font" type="font/ttf" href="/fonts/Parkinsans-VariableFont_wght.ttf" crossOrigin="anonymous" />
         <link rel="preload" as="font" type="font/ttf" href="/fonts/SpaceGrotesk-VariableFont_wght.ttf" crossOrigin="anonymous" />
       </head>
-      <body className="relative">
-        <main>{children}</main>
+      <body className="relative" suppressHydrationWarning>
+        <SessionProvider>
+          <main>{children}</main>
+        </SessionProvider>
       </body>
     </html>
   );

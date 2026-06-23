@@ -14,5 +14,13 @@ export const navbarConfig = {
       label: 'All Games',
       href: '/games',
     },
+    {
+      label: 'Practice Arena',
+      href: '/arena',
+    },
+    {
+      label: 'For Companies',
+      href: '/company',
+    },
   ] as NavItem[],
 };

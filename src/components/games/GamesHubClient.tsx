@@ -161,7 +161,7 @@ export default function GamesHubClient() {
               return (
                 <li key={game.slug}>
                   <Link
-                    href={`/games/${game.category}/${game.slug}`}
+                    href={`/play/${game.slug}`}
                     className="relative flex flex-col h-full p-8 rounded-3xl bg-white/5 backdrop-blur-md border border-white/10 hover:bg-white/10 hover:border-white/20 hover:-translate-y-1 hover:shadow-2xl hover:shadow-purple-500/5 transition-all duration-300 ease-out group"
                   >
                     <div className="relative z-10 flex flex-col h-full">

@@ -11,6 +11,11 @@ const transporter = nodemailer.createTransport({
 });
 
 export async function sendWelcomeEmail(to: string, name: string) {
+  // No-op when SMTP isn't configured — keeps signup fast and error-free.
+  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+    return;
+  }
+
   const firstName = name.split(' ')[0];
 
   const text = `Hey ${firstName}!

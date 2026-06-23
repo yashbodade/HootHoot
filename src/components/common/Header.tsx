@@ -7,7 +7,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { usePathname } from "next/navigation";
 import { useUser } from "@/context/UserContext";
 import { Button } from "../ui/button";
-import { LogIn, LogOut } from "lucide-react";
+import { LogOut, Zap, Building2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import {
   DropdownMenu,
@@ -120,18 +120,25 @@ function Navbar() {
           {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-1">
             {navbarConfig.navItems.map((item) => {
-              const isActive = pathname === item.href;
+              const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+              const isArena = item.href === "/arena";
+              const isCompany = item.href === "/company";
               return (
                 <Link
                   key={item.label}
                   href={item.href}
                   className={cn(
-                    "relative text-sm font-medium py-1.5 px-3 rounded-lg transition-colors duration-200",
+                    "relative text-sm font-medium py-1.5 px-3 rounded-lg transition-colors duration-200 flex items-center gap-1.5",
                     isActive
                       ? "text-foreground bg-white/10"
-                      : "text-foreground/60 hover:text-foreground hover:bg-white/5"
+                      : "text-foreground/60 hover:text-foreground hover:bg-white/5",
+                    isArena && !isActive && "text-purple-400/80 hover:text-purple-300 hover:bg-purple-500/10",
+                    isArena && isActive && "text-purple-300 bg-purple-500/15",
+                    isCompany && !isActive && "text-foreground/60 hover:text-foreground hover:bg-white/5"
                   )}
                 >
+                  {isArena && <Zap className="w-3.5 h-3.5" />}
+                  {isCompany && <Building2 className="w-3.5 h-3.5" />}
                   {item.label}
                 </Link>
               );
@@ -141,20 +148,8 @@ function Navbar() {
           {/* Right side */}
           <div className="flex items-center gap-2 md:gap-3">
 
-            {/* Auth */}
-            {!user ? (
-              <Button
-                asChild
-                variant="default"
-                size="sm"
-                className="h-9 px-4 md:h-10 md:px-6 text-sm font-semibold"
-              >
-                <Link href="/register">
-                  <LogIn className="w-4 h-4 mr-1.5" />
-                  Sign In
-                </Link>
-              </Button>
-            ) : (
+            {/* Auth — only show avatar when signed in; sign-in is at /arena/auth */}
+            {user && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -208,7 +203,9 @@ function Navbar() {
             {/* Nav links */}
             <nav className="flex flex-col p-3 gap-1">
               {navbarConfig.navItems.map((item) => {
-                const isActive = pathname === item.href;
+                const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+                const isArena = item.href === "/arena";
+                const isCompany = item.href === "/company";
                 return (
                   <Link
                     key={item.label}
@@ -218,13 +215,15 @@ function Navbar() {
                       "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors duration-150",
                       isActive
                         ? "bg-white/10 text-foreground"
-                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                      isArena && !isActive && "text-purple-400/80 hover:text-purple-300 hover:bg-purple-500/10"
                     )}
                   >
-                    {isActive && (
-                      <span className="w-1 h-4 bg-foreground rounded-full shrink-0" />
-                    )}
-                    <span className={cn(!isActive && "ml-4")}>{item.label}</span>
+                    {isActive && <span className="w-1 h-4 bg-foreground rounded-full shrink-0" />}
+                    {!isActive && isArena && <Zap className="w-4 h-4 shrink-0" />}
+                    {!isActive && isCompany && <Building2 className="w-4 h-4 shrink-0" />}
+                    {!isActive && !isArena && !isCompany && <span className="w-4 h-4 shrink-0" />}
+                    <span>{item.label}</span>
                   </Link>
                 );
               })}
@@ -237,15 +236,6 @@ function Navbar() {
                 repo="BlyncWeb"
                 className="w-full justify-center"
               />
-
-              {!user && (
-                <Button asChild variant="outline" className="w-full h-10">
-                  <Link href="/register" onClick={close}>
-                    <LogIn className="w-4 h-4 mr-2" />
-                    Sign In
-                  </Link>
-                </Button>
-              )}
 
               {user && (
                 <div className="flex items-center gap-3 px-1">
