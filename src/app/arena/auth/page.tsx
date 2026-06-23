@@ -9,7 +9,6 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Loader2, Zap, Building2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { authClient } from "@/lib/auth-client";
 
 type Role = "student" | "company";
 type Mode = "signin" | "signup";
@@ -38,45 +37,42 @@ export default function ArenaAuthPage() {
     setLoading(true);
 
     const destination = role === "company" ? "/company" : redirect;
+    const endpoint = mode === "signin" ? "/api/auth/signin" : "/api/auth/signup";
 
-    if (mode === "signup") {
-      await authClient.signUp.email(
-        {
-          email: form.email,
-          password: form.password,
-          name: role === "company" && form.companyName
-            ? `${form.name} (${form.companyName})`
-            : form.name,
-        },
-        {
-          onSuccess: () => {
-            toast.success("Account created! Welcome to Hoot-Hoot.");
-            // Hard redirect — works reliably in iframes, preview envs, and prod.
-            window.location.href = destination;
-          },
-          onError: (ctx) => {
-            toast.error(ctx.error.message || "Could not create account.");
-            setLoading(false);
-          },
-        }
+    try {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(
+          mode === "signin"
+            ? { email: form.email, password: form.password }
+            : {
+                email: form.email,
+                password: form.password,
+                name: form.name,
+                userType: role,
+                companyName: role === "company" ? form.companyName : undefined,
+              }
+        ),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        toast.error(data.error || "Authentication failed");
+        setLoading(false);
+        return;
+      }
+
+      toast.success(
+        mode === "signin"
+          ? "Welcome back!"
+          : "Account created! Welcome to Hoot-Hoot."
       );
-    } else {
-      await authClient.signIn.email(
-        {
-          email: form.email,
-          password: form.password,
-        },
-        {
-          onSuccess: () => {
-            toast.success("Welcome back!");
-            window.location.href = destination;
-          },
-          onError: (ctx) => {
-            toast.error(ctx.error.message || "Invalid email or password.");
-            setLoading(false);
-          },
-        }
-      );
+      window.location.href = destination;
+    } catch (err) {
+      toast.error("Something went wrong");
+      setLoading(false);
     }
   }
 
@@ -201,7 +197,7 @@ export default function ArenaAuthPage() {
                   placeholder="Acme Corp"
                   value={form.companyName}
                   onChange={update("companyName")}
-                  required
+                  required={role === "company"}
                 />
               </div>
             )}
