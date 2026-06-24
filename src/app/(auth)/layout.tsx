@@ -1,7 +1,5 @@
-import { auth } from "@/lib/auth"
-import { headers } from "next/headers"
+import { getCurrentUser } from "@/lib/cognito-server"
 import { redirect } from "next/navigation"
-import HlsVideo from "@/components/common/HlsVideo"
 
 export default async function AuthLayout({
    children,
@@ -9,15 +7,12 @@ export default async function AuthLayout({
    children: React.ReactNode;
 }>) {
    try {
-      const session = await auth.api.getSession({
-         headers: await headers()
-      })
-
-      if (session) {
+      const user = await getCurrentUser()
+      if (user) {
          return redirect("/")
       }
    } catch {
-      // DB unreachable — skip redirect, show auth page as guest
+      // Not authenticated — show auth page
    }
    return (
       <main className="relative h-screen">

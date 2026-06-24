@@ -1,16 +1,15 @@
 "use server";
 
-import { auroraQuery, withAuroraConnection } from "@/lib/db-aurora";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
+import { auroraQuery } from "@/lib/db-aurora";
+import { getCurrentUser } from "@/lib/cognito-server";
 import { nanoid } from "nanoid";
 import type { CompanyTest, TestSession, TestAnalytics, QuestionConfig } from "@/types/arena";
 
-// ── Guard helper — uses Better Auth session ───────────────────
-async function requireBetterAuthUser() {
-  const session = await auth.api.getSession({ headers: await headers() }).catch(() => null);
-  if (!session?.user) throw new Error("Unauthorized: Sign in required.");
-  return session.user;
+// ── Guard helper — uses Cognito session ───────────────────────
+async function requireUser() {
+  const user = await getCurrentUser().catch(() => null);
+  if (!user) throw new Error("Unauthorized: Sign in required.");
+  return user;
 }
 
 // ── Ensure a company row exists for a user (upsert) ───────────
@@ -21,7 +20,6 @@ async function ensureCompany(userId: string, name?: string): Promise<string> {
   );
   if (existing.rows.length > 0) return existing.rows[0].id as string;
 
-  // Auto-create company row on first use
   const id = nanoid(24);
   await auroraQuery(
     `INSERT INTO companies (id, user_id, name, created_at, updated_at)
@@ -48,10 +46,9 @@ export async function createCompanyTest(params: {
   endsAt?: string;
 }): Promise<{ test: CompanyTest | null; error: string | null }> {
   try {
-    const user = await requireBetterAuthUser();
-    const companyId = await ensureCompany(user.id, user.name ?? undefined);
+    const user = await requireUser();
+    const companyId = await ensureCompany(user.sub, user.name ?? undefined);
 
-    // Generate unique invite code
     const inviteCode = nanoid(8).toUpperCase();
     const id = nanoid(24);
 
@@ -80,7 +77,7 @@ export async function createCompanyTest(params: {
 
 export async function getCompanyTests(userId?: string): Promise<CompanyTest[]> {
   try {
-    const uid = userId ?? (await requireBetterAuthUser()).id;
+    const uid = userId ?? (await requireUser()).sub;
     const companyId = await ensureCompany(uid);
     const result = await auroraQuery(
       `SELECT * FROM company_tests WHERE company_id = $1 ORDER BY created_at DESC`,
@@ -97,8 +94,8 @@ export async function updateTestStatus(
   status: "draft" | "active" | "closed"
 ): Promise<{ error: string | null }> {
   try {
-    const user = await requireBetterAuthUser();
-    const companyId = await ensureCompany(user.id);
+    const user = await requireUser();
+    const companyId = await ensureCompany(user.sub);
     await auroraQuery(
       `UPDATE company_tests SET status = $1 WHERE id = $2 AND company_id = $3`,
       [status, testId, companyId]
@@ -111,8 +108,8 @@ export async function updateTestStatus(
 
 export async function deleteTest(testId: string): Promise<{ error: string | null }> {
   try {
-    const user = await requireBetterAuthUser();
-    const companyId = await ensureCompany(user.id);
+    const user = await requireUser();
+    const companyId = await ensureCompany(user.sub);
     await auroraQuery(
       `DELETE FROM company_tests WHERE id = $1 AND company_id = $2`,
       [testId, companyId]
@@ -127,9 +124,8 @@ export async function deleteTest(testId: string): Promise<{ error: string | null
 
 export async function getTestSessions(testId: string): Promise<TestSession[]> {
   try {
-    const user = await requireBetterAuthUser();
-    const companyId = await ensureCompany(user.id);
-    // Verify ownership
+    const user = await requireUser();
+    const companyId = await ensureCompany(user.sub);
     const owns = await auroraQuery(
       `SELECT 1 FROM company_tests WHERE id = $1 AND company_id = $2`,
       [testId, companyId]
@@ -139,7 +135,7 @@ export async function getTestSessions(testId: string): Promise<TestSession[]> {
     const result = await auroraQuery(
       `SELECT ts.*, au.name as candidate_name, au.email as candidate_email
        FROM test_sessions ts
-       JOIN arena_users au ON au.id = ts.user_id
+       LEFT JOIN arena_users au ON au.id = ts.user_id
        WHERE ts.test_id = $1
        ORDER BY ts.score DESC NULLS LAST, ts.time_taken_ms ASC NULLS LAST`,
       [testId]
@@ -152,8 +148,8 @@ export async function getTestSessions(testId: string): Promise<TestSession[]> {
 
 export async function getTestAnalytics(testId: string): Promise<TestAnalytics | null> {
   try {
-    const user = await requireBetterAuthUser();
-    const companyId = await ensureCompany(user.id);
+    const user = await requireUser();
+    const companyId = await ensureCompany(user.sub);
     const result = await auroraQuery(
       `SELECT * FROM test_analytics WHERE test_id = $1 AND company_id = $2`,
       [testId, companyId]
@@ -167,7 +163,7 @@ export async function getTestAnalytics(testId: string): Promise<TestAnalytics | 
 
 export async function getAllTestsAnalytics(userId?: string): Promise<TestAnalytics[]> {
   try {
-    const uid = userId ?? (await requireBetterAuthUser()).id;
+    const uid = userId ?? (await requireUser()).sub;
     const companyId = await ensureCompany(uid);
     const result = await auroraQuery(
       `SELECT * FROM test_analytics WHERE company_id = $1`,
@@ -186,8 +182,8 @@ export async function joinTestByCode(inviteCode: string): Promise<{
   error: string | null;
 }> {
   try {
-    const session = await auth.api.getSession({ headers: await headers() }).catch(() => null);
-    if (!session?.user) return { test: null, error: "Sign in required." };
+    const user = await getCurrentUser().catch(() => null);
+    if (!user) return { test: null, error: "Sign in required." };
 
     const result = await auroraQuery(
       `SELECT * FROM company_tests WHERE invite_code = $1 AND status = 'active'`,
@@ -208,9 +204,8 @@ export async function startTestSession(testId: string): Promise<{
   error: string | null;
 }> {
   try {
-    const session = await auth.api.getSession({ headers: await headers() }).catch(() => null);
-    if (!session?.user) return { sessionId: null, error: "Sign in required." };
-    const user = session.user;
+    const user = await getCurrentUser().catch(() => null);
+    if (!user) return { sessionId: null, error: "Sign in required." };
 
     const test = await auroraQuery(
       `SELECT total_questions FROM company_tests WHERE id = $1 AND status = 'active'`,
@@ -223,12 +218,12 @@ export async function startTestSession(testId: string): Promise<{
       `INSERT INTO test_sessions (id, test_id, user_id, total_questions, status)
        VALUES ($1, $2, $3, $4, 'in_progress')
        ON CONFLICT (test_id, user_id) DO NOTHING`,
-      [id, testId, user.id, test.rows[0].total_questions]
+      [id, testId, user.sub, test.rows[0].total_questions]
     );
 
     const existing = await auroraQuery(
       `SELECT id FROM test_sessions WHERE test_id = $1 AND user_id = $2`,
-      [testId, user.id]
+      [testId, user.sub]
     );
 
     return { sessionId: existing.rows[0]?.id ?? null, error: null };
@@ -247,9 +242,8 @@ export async function submitTestSession(params: {
   status: "completed" | "disqualified";
 }): Promise<{ error: string | null }> {
   try {
-    const session = await auth.api.getSession({ headers: await headers() }).catch(() => null);
-    if (!session?.user) return { error: "Sign in required." };
-    const user = session.user;
+    const user = await getCurrentUser().catch(() => null);
+    if (!user) return { error: "Sign in required." };
 
     await auroraQuery(
       `UPDATE test_sessions
@@ -263,7 +257,7 @@ export async function submitTestSession(params: {
         params.warningsCount,
         params.status,
         params.sessionId,
-        user.id,
+        user.sub,
       ]
     );
     return { error: null };

@@ -1,24 +1,30 @@
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
+import { getCurrentUser } from "@/lib/cognito-server";
 import { UserProvider } from "@/context/UserContext";
 import Footer from "@/components/common/Footer";
 import Header from "@/components/common/Header";
+import type { User } from "@/types/user";
 
 export default async function GamesLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  let user: any = null;
+  let user: User | null = null;
 
   try {
-    const session = await auth.api.getSession({ headers: await headers() });
-    user = session?.user ?? null;
-  } catch (error) {
-    if (error instanceof Error && ((error as any).digest === "DYNAMIC_SERVER_USAGE" || error.message?.includes("Dynamic server usage"))) {
-      throw error;
+    const cognitoUser = await getCurrentUser();
+    if (cognitoUser) {
+      user = {
+        id: cognitoUser.sub,
+        email: cognitoUser.email,
+        name: cognitoUser.name,
+        emailVerified: cognitoUser.email_verified,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
     }
-    // DB unreachable — render as guest
+  } catch {
+    // Not authenticated — render as guest
   }
 
   return (
