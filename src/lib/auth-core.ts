@@ -208,3 +208,13 @@ export async function requireUser(): Promise<AuthUser> {
   if (!user) throw new Error("Unauthorized: sign in required.");
   return user;
 }
+
+/**
+ * Full sign out: deletes the current session row in Aurora AND clears the
+ * cookie. Safe to call from Route Handlers and Server Actions.
+ */
+export async function signOut(): Promise<void> {
+  const token = await getSessionToken();
+  await signOutByToken(token);
+  await clearSessionCookie();
+}
