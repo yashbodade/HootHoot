@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { gameScores, users } from "@/lib/schema";
+import { gameScores, cognitoUsers } from "@/lib/schema";
 import { eq, desc, max, sql } from "drizzle-orm";
 
 export type LeaderboardEntry = {
@@ -28,9 +28,14 @@ export async function getLeaderboard(gameId?: string): Promise<LeaderboardEntry[
       if (userIds.length === 0) return [];
 
       const userRows = await db
-        .select({ id: users.id, name: users.name, image: users.image })
-        .from(users)
-        .where(sql`${users.id} = ANY(ARRAY[${sql.join(userIds.map(id => sql`${id}`), sql`, `)}])`);
+        .select({ id: cognitoUsers.sub, name: cognitoUsers.name, image: cognitoUsers.avatar_url })
+        .from(cognitoUsers)
+        .where(
+          sql`${cognitoUsers.sub} = ANY(ARRAY[${sql.join(
+            userIds.map((id) => sql`${id}`),
+            sql`, `
+          )}])`
+        );
 
       return scores
         .map((s, i) => {
@@ -69,9 +74,14 @@ export async function getLeaderboard(gameId?: string): Promise<LeaderboardEntry[
       if (userIds.length === 0) return [];
 
       const userRows = await db
-        .select({ id: users.id, name: users.name, image: users.image })
-        .from(users)
-        .where(sql`${users.id} = ANY(ARRAY[${sql.join(userIds.map(id => sql`${id}`), sql`, `)}])`);
+        .select({ id: cognitoUsers.sub, name: cognitoUsers.name, image: cognitoUsers.avatar_url })
+        .from(cognitoUsers)
+        .where(
+          sql`${cognitoUsers.sub} = ANY(ARRAY[${sql.join(
+            userIds.map((id) => sql`${id}`),
+            sql`, `
+          )}])`
+        );
 
       return sorted
         .map(([id, score], i) => {

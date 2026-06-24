@@ -1,25 +1,25 @@
 "use server";
 
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
+import { getCurrentUser } from "@/lib/cognito-server";
 import { db } from "@/lib/db";
 import { gameScores } from "@/lib/schema";
 import { randomUUID } from "crypto";
 
 /**
  * Save a game score for the authenticated user.
+ * The userId is the Cognito sub from the verified ID token cookie.
  */
 export async function saveScore(gameId: string, score: number) {
   try {
-    const session = await auth.api.getSession({ headers: await headers() });
+    const user = await getCurrentUser();
 
-    if (!session) {
+    if (!user) {
       return { success: false, error: "Unauthorized" };
     }
 
     await db.insert(gameScores).values({
       id: randomUUID(),
-      userId: session.user.id,
+      userId: user.sub,
       gameId,
       score,
     });
