@@ -218,9 +218,6 @@ function Navbar() {
                     )}
                   >
                     {isActive && <span className="w-1 h-4 bg-foreground rounded-full shrink-0" />}
-                    {!isActive && isArena && <Zap className="w-4 h-4 shrink-0" />}
-                    {!isActive && isCompany && <Building2 className="w-4 h-4 shrink-0" />}
-                    {!isActive && !isArena && !isCompany && <span className="w-4 h-4 shrink-0" />}
                     <span>{item.label}</span>
                   </Link>
                 );
