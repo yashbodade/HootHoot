@@ -158,10 +158,14 @@ export default function GamesHubClient() {
               const meta = GAME_META[game.slug] ?? { icon: Zap };
               const Icon = meta.icon;
 
+              const playHref =
+                game.category === "brain"
+                  ? `/play/brain-games/${game.slug}`
+                  : `/play/${game.slug}`;
               return (
                 <li key={game.slug}>
                   <Link
-                    href={`/play/${game.slug}`}
+                    href={playHref}
                     className="relative flex flex-col h-full p-8 rounded-3xl bg-white/5 backdrop-blur-md border border-white/10 hover:bg-white/10 hover:border-white/20 hover:-translate-y-1 hover:shadow-2xl hover:shadow-purple-500/5 transition-all duration-300 ease-out group"
                   >
                     <div className="relative z-10 flex flex-col h-full">

@@ -29,7 +29,10 @@ const neonConnStr =
   process.env.POSTGRES_URL_NON_POOLING ??
   "";
 
-const useAurora = !!auroraHost;
+// Aurora is only reachable from Vercel's production network (VPC-locked).
+// In local dev / sandbox the connection always times out, so we always use
+// the Neon connection string in dev and reserve Aurora for production only.
+const useAurora = !!auroraHost && process.env.NODE_ENV === "production";
 
 // ── Build the pool ────────────────────────────────────────────────────────────
 declare global {
