@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="public/og-logo.png" alt="Hoot-Hoot Logo" width="180" />
+  <img src="public/logo.png" alt="Hoot-Hoot Logo" width="180" />
   <h1>Hoot-Hoot — Cognitive Games Platform</h1>
   <p>
     <strong>Brain training games that actually prepare you for real placement tests (Capgemini, Cognizant, and more). Play free. No cap.</strong>
@@ -461,13 +461,4 @@ Contributions are welcome — bug reports, feature ideas, or pull requests. Open
 
 MIT — see [LICENSE](LICENSE) for details.
 
----
 
-<div align="center">
-  <p>Built by <a href="https://www.nishul.dev">Nishul Dhakar</a> & <a href="https://github.com/yashbodade">Yash Bodade</a></p>
-  <p>
-    <a href="https://twitter.com/nishuldhakar">Twitter</a> ·
-    <a href="https://github.com/yashbodade/HootHoot">GitHub</a> ·
-    <a href="https://hoot-hoot.com">Live Site</a>
-  </p>
-</div>
