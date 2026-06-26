@@ -453,7 +453,7 @@ The `ProctorEngine` (`src/components/arena/ProctorEngine.tsx`) enforces test int
 
 ## Contributing
 
-Contributions are welcome — bug reports, feature ideas, or pull requests. Open an issue first for big changes so we can chat about it before you write a ton of code.
+Built by [Yash Bodade](https://github.com/yashbodade). Contributions are welcome — bug reports, feature ideas, or pull requests. Open an issue first for big changes so we can chat about it before you write a ton of code.
 
 ---
 
