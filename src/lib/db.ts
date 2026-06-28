@@ -47,31 +47,43 @@ function buildPool(): Pool {
     const { awsCredentialsProvider } = require("@vercel/functions/oidc") as typeof import("@vercel/functions/oidc");
 
     const region  = process.env.AWS_APG_AWS_REGION  ?? process.env.AWS_REGION  ?? "us-east-1";
-    const roleArn = process.env.AWS_APG_AWS_ROLE_ARN ?? process.env.AWS_ROLE_ARN ?? "";
+    const roleArn = process.env.AWS_APG_AWS_ROLE_ARN ?? process.env.AWS_ROLE_ARN;
     const user     = process.env.AWS_APG_PGUSER     ?? process.env.PGUSER     ?? "postgres";
     const database = process.env.AWS_APG_PGDATABASE ?? process.env.PGDATABASE ?? "postgres";
+    const port = parseInt(process.env.AWS_APG_PGPORT ?? process.env.PGPORT ?? "5432", 10);
 
     if (!roleArn) {
       console.error("[db] AWS_APG_AWS_ROLE_ARN not set — IAM auth will fail on Aurora.");
     }
 
-    const signer = new Signer({
-      credentials: awsCredentialsProvider({
-        roleArn,
-        clientConfig: { region },
-      }),
+    const signerConfig: any = {
       region,
       hostname: auroraHost,
       username: user,
-      port: 5432,
-    });
+      port,
+    };
+
+    // Only add credentials provider if roleArn is available
+    if (roleArn) {
+      signerConfig.credentials = awsCredentialsProvider({
+        roleArn,
+        clientConfig: { region },
+      });
+    } else {
+      // Fallback: use default AWS credentials chain
+      signerConfig.credentials = awsCredentialsProvider({
+        clientConfig: { region },
+      });
+    }
+
+    const signer = new Signer(signerConfig);
 
     console.log("[db] Using AWS Aurora PostgreSQL (IAM auth) —", auroraHost);
 
     return new Pool({
       host: auroraHost,
       database,
-      port: 5432,
+      port,
       user,
       // RDS Signer tokens are valid for 15 min; the pool refreshes them per
       // new connection, so long-lived pools stay authenticated automatically.
