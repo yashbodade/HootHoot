@@ -9,6 +9,7 @@
     <a href="https://hoot-hoot.vercel.app"><strong>🚀 Live Demo</strong></a> ·
     <a href="https://hoot-hoot.vercel.app/arena">Practice Arena</a> ·
     <a href="https://hoot-hoot.vercel.app/aws">AWS Dashboard</a> ·
+    <a href="https://hoot-hoot.vercel.app/admin/database">Database Admin</a> ·
     <a href="#-system-architecture">Architecture</a>
   </p>
 
@@ -45,6 +46,7 @@ On top of that, companies can create proctored tests, share invite codes with ca
 | **AI Chat** | Google Gemini powered assistant for game strategy help |
 | **Auth System** | Custom email/password auth with scrypt hashing + HttpOnly sessions |
 | **AWS Status Page** | Live dashboard showing Aurora cluster health, tables, indexes, latency |
+| **Database Admin** | 25 tables visualization + live connection info + AWS credentials display |
 | **PWA Ready** | Service worker + manifest — installable on mobile |
 | **SEO Optimized** | Sitemap, robots.txt, OG images, canonical URLs, structured data |
 
