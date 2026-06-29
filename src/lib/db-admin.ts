@@ -1,51 +1,6 @@
-import { PostgresJsDatabase, drizzle } from 'drizzle-orm/postgres-js';
-import postgres from 'postgres';
-import * as schema from './db-schema';
+// Database admin utilities for Dashboard
+// Displays AWS connection info and table metadata
 
-let db: PostgresJsDatabase<typeof schema> | null = null;
-
-export async function getAdminDb() {
-  if (db) return db;
-
-  const connectionString = buildConnectionString();
-  
-  if (!connectionString) {
-    throw new Error('Database connection string not available');
-  }
-
-  const client = postgres(connectionString);
-  db = drizzle(client, { schema });
-  
-  return db;
-}
-
-function buildConnectionString(): string {
-  // AWS Aurora PostgreSQL environment variables
-  const pgHost = process.env.AWS_APG_PGHOST;
-  const pgUser = process.env.AWS_APG_PGUSER;
-  const pgDatabase = process.env.AWS_APG_PGDATABASE;
-  const pgPort = process.env.AWS_APG_PGPORT || '5432';
-  const pgSslMode = process.env.AWS_APG_PGSSLMODE || 'require';
-
-  // IAM authentication - get temporary token
-  const iamToken = process.env.AWS_RDS_IAM_TOKEN;
-
-  if (!pgHost || !pgUser || !pgDatabase) {
-    console.warn('[DB] AWS Aurora env vars missing:', {
-      pgHost: !!pgHost,
-      pgUser: !!pgUser,
-      pgDatabase: !!pgDatabase,
-    });
-    return '';
-  }
-
-  // Build connection string with IAM token or fallback
-  const connStr = `postgresql://${pgUser}${iamToken ? `:${iamToken}` : ''}@${pgHost}:${pgPort}/${pgDatabase}?sslmode=${pgSslMode}`;
-  
-  return connStr;
-}
-
-// Get database connection info for UI display
 export async function getConnectionInfo() {
   return {
     host: process.env.AWS_APG_PGHOST || 'Not configured',

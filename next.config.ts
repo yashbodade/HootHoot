@@ -31,7 +31,6 @@ const nextConfig: NextConfig = {
     serverActions: {
       bodySizeLimit: "5mb",
     },
-    turbopackFileSystemCacheForDev: true,
   },
 
   // Long-lived cache headers for static assets
