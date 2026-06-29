@@ -124,7 +124,7 @@ importers:
         version: 2.1.1
       drizzle-orm:
         specifier: ^0.45.1
-        version: 0.45.1(@prisma/client@6.19.0(prisma@6.19.0(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.20.0)(kysely@0.28.8)(pg@8.22.0)(postgres@3.4.8)(prisma@6.19.0(typescript@5.9.3))
+        version: 0.45.1(@prisma/client@6.19.0(prisma@6.19.0(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.20.0)(kysely@0.28.8)(pg@8.22.0)(postgres@3.4.9)(prisma@6.19.0(typescript@5.9.3))
       eventsource-parser:
         specifier: ^3.0.6
         version: 3.0.6
@@ -161,6 +161,9 @@ importers:
       pnpm:
         specifier: ^10.14.0
         version: 10.24.0
+      postgres:
+        specifier: ^3.4.9
+        version: 3.4.9
       radix-ui:
         specifier: ^1.4.3
         version: 1.4.3(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -4608,8 +4611,8 @@ packages:
     resolution: {integrity: sha512-9ZhXKM/rw350N1ovuWHbGxnGh/SNJ4cnxHiM0rxE4VN41wsg8P8zWn9hv/buK00RP4WvlOyr/RBDiptyxVbkZQ==}
     engines: {node: '>=0.10.0'}
 
-  postgres@3.4.8:
-    resolution: {integrity: sha512-d+JFcLM17njZaOLkv6SCev7uoLaBtfK86vMUXhW1Z4glPWh4jozno9APvW/XKFJ3CCxVoC7OL38BqRydtu5nGg==}
+  postgres@3.4.9:
+    resolution: {integrity: sha512-GD3qdB0x1z9xgFI6cdRD6xu2Sp2WCOEoe3mtnyB5Ee0XrrL5Pe+e4CCnJrRMnL1zYtRDZmQQVbvOttLnKDLnaw==}
     engines: {node: '>=12'}
 
   potpack@1.0.2:
@@ -8666,13 +8669,13 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  drizzle-orm@0.45.1(@prisma/client@6.19.0(prisma@6.19.0(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.20.0)(kysely@0.28.8)(pg@8.22.0)(postgres@3.4.8)(prisma@6.19.0(typescript@5.9.3)):
+  drizzle-orm@0.45.1(@prisma/client@6.19.0(prisma@6.19.0(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.20.0)(kysely@0.28.8)(pg@8.22.0)(postgres@3.4.9)(prisma@6.19.0(typescript@5.9.3)):
     optionalDependencies:
       '@prisma/client': 6.19.0(prisma@6.19.0(typescript@5.9.3))(typescript@5.9.3)
       '@types/pg': 8.20.0
       kysely: 0.28.8
       pg: 8.22.0
-      postgres: 3.4.8
+      postgres: 3.4.9
       prisma: 6.19.0(typescript@5.9.3)
 
   dunder-proto@1.0.1:
@@ -10414,8 +10417,7 @@ snapshots:
     dependencies:
       xtend: 4.0.2
 
-  postgres@3.4.8:
-    optional: true
+  postgres@3.4.9: {}
 
   potpack@1.0.2: {}
 
