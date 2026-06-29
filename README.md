@@ -1,14 +1,15 @@
 <div align="center">
   <img src="public/logo.png" alt="Hoot-Hoot Logo" width="180" />
-  <h1>Hoot-Hoot — Cognitive Games Platform</h1>
+  <h1>HootHoot — AI-Powered Cognitive Games Platform</h1>
   <p>
-    <strong>Brain training games that actually prepare you for real placement tests (Capgemini, Cognizant, and more). Play free. No cap.</strong>
+    <strong>Brain training games + AI coaching for placement test prep (Capgemini, Cognizant, TCS). Free. Enterprise-grade infrastructure.</strong>
   </p>
 
   <p>
-    <a href="https://hoot-hoot.com">Live Site</a> ·
-    <a href="https://hoot-hoot.com/arena">Practice Arena</a> ·
-    <a href="https://hoot-hoot.com/aws">AWS Status Dashboard</a>
+    <a href="https://hoot-hoot.vercel.app"><strong>🚀 Live Demo</strong></a> ·
+    <a href="https://hoot-hoot.vercel.app/arena">Practice Arena</a> ·
+    <a href="https://hoot-hoot.vercel.app/aws">AWS Dashboard</a> ·
+    <a href="#-system-architecture">Architecture</a>
   </p>
 
   <p>
@@ -49,79 +50,162 @@ On top of that, companies can create proctored tests, share invite codes with ca
 
 ---
 
-## Architecture Diagram
+## System Architecture
 
-Here's how everything connects end-to-end:
+### Complete Data Flow
 
+```mermaid
+graph TB
+    subgraph Client["🌐 Client Layer"]
+        Browser["Browser<br/>React 19 + Tailwind 4"]
+        Mobile["Mobile PWA<br/>Installable"]
+    end
+    
+    subgraph CDN["🚀 Vercel Edge Network"]
+        Edge["Global CDN<br/>Static Assets<br/>HLS Streaming"]
+    end
+    
+    subgraph Next["Next.js 16 App Router"]
+        Pages["Pages & Components<br/>Home, Games, Arena"]
+        Auth["Auth Handler<br/>Signup/Signin/Signout"]
+        GameEngine["Game Engine<br/>Scoring, Leaderboard"]
+        ProctorEngine["Proctor Engine<br/>Arena Monitoring"]
+        AI["AI Chat<br/>Gemini Feedback"]
+    end
+    
+    subgraph AWS["AWS Infrastructure us-east-1"]
+        Aurora["🗄️ Aurora PostgreSQL<br/>16 Tables · 42 Indexes<br/>Relational Data"]
+        DynamoDB["⚡ DynamoDB<br/>Single-Table<br/>Session Cache"]
+    end
+    
+    subgraph External["🌍 External Services"]
+        Gemini["Google Gemini<br/>AI Analysis"]
+        Email["Nodemailer SMTP<br/>Email Notifications"]
+        Analytics["Google Analytics<br/>Event Tracking"]
+    end
+    
+    Browser -->|HTTPS| Edge
+    Mobile -->|HTTPS| Edge
+    Edge -->|Route| Pages
+    Pages --> Auth
+    Auth -->|User Data| Aurora
+    Auth -->|Session Cache| DynamoDB
+    GameEngine -->|Score Storage| Aurora
+    GameEngine -->|Leaderboard Cache| DynamoDB
+    ProctorEngine -->|Warning Logs| Aurora
+    AI -->|Query Analysis| Gemini
+    Auth -->|Welcome Email| Email
+    Pages -->|Event Tracking| Analytics
+    
+    style Browser fill:#3B82F6,stroke:#1E40AF,color:#fff
+    style Mobile fill:#3B82F6,stroke:#1E40AF,color:#fff
+    style Edge fill:#10B981,stroke:#047857,color:#fff
+    style Aurora fill:#F59E0B,stroke:#D97706,color:#fff
+    style DynamoDB fill:#F59E0B,stroke:#D97706,color:#fff
+    style Gemini fill:#8B5CF6,stroke:#7C3AED,color:#fff
+    style Email fill:#EC4899,stroke:#BE185D,color:#fff
+    style Analytics fill:#06B6D4,stroke:#0891B2,color:#fff
 ```
-                         ┌─────────────────────────────────────┐
-                         │           User's Browser             │
-                         │  Next.js App (React 19, Tailwind 4)  │
-                         └──────────────┬──────────────────────┘
-                                        │ HTTPS
-                                        ▼
-                         ┌─────────────────────────────────────┐
-                         │          Vercel Edge Network         │
-                         │   CDN · Static Assets · HLS Video    │
-                         └──────────────┬──────────────────────┘
-                                        │
-                         ┌──────────────▼──────────────────────┐
-                         │      Next.js 16 App Router (SSR)     │
-                         │                                      │
-                         │  Pages / Layouts (RSC)               │
-                         │  ├── / (Home + Hero)                 │
-                         │  ├── /play/* (6 Cognitive Games)     │
-                         │  ├── /play/brain-games/* (8 games)   │
-                         │  ├── /arena (Practice Arena)         │
-                         │  ├── /company (HR Dashboard)         │
-                         │  ├── /leaderboard (Global Ranks)     │
-                         │  ├── /games/* (SEO Game Hub)         │
-                         │  └── /aws (Live AWS Status Page)     │
-                         │                                      │
-                         │  API Routes                          │
-                         │  ├── /api/auth/* (signup/in/out)     │
-                         │  ├── /api/scores (game scoring)      │
-                         │  ├── /api/leaderboard                │
-                         │  ├── /api/arena/* (proctoring)       │
-                         │  ├── /api/chat (Gemini AI)           │
-                         │  └── /api/aws/status (health check)  │
-                         └──────┬───────────────────┬──────────┘
-                                │ IAM (OIDC)         │ IAM (OIDC)
-                                ▼                    ▼
-          ┌──────────────────────────┐   ┌─────────────────────────┐
-          │   AWS Aurora PostgreSQL  │   │   Amazon DynamoDB        │
-          │   (Primary Database)     │   │   (Single-Table Design)  │
-          │                          │   │                          │
-          │   16 Tables, 42 Indexes  │   │   Key-Value Lookups:     │
-          │   ────────────────────   │   │   ────────────────────   │
-          │   app_users              │   │   USER#email → profile   │
-          │   user_sessions          │   │   SESSION#token → data   │
-          │   game_score             │   │   GAME#id → scores       │
-          │   game_attempt           │   │   ARENA#LEADERBOARD      │
-          │   user_streak            │   │   USER#id → attempts     │
-          │   companies              │   │                          │
-          │   company_tests          │   │   Zero connection pools  │
-          │   test_sessions          │   │   Serverless-native      │
-          │   warning_logs           │   │   ~1ms point reads       │
-          │   arena_questions        │   └─────────────────────────┘
-          │   broadcast / polls      │
-          │   + test_analytics VIEW  │
-          │                          │
-          │   Auth: AWS RDS Signer   │
-          │   (15-min rotating IAM   │
-          │   tokens via OIDC)       │
-          │   No passwords in env    │
-          │   VPC-restricted access  │
-          └──────────────────────────┘
-                         │
-                         ▼
-          ┌──────────────────────────┐
-          │   External Services      │
-          │   ─────────────────────  │
-          │   Google Gemini (AI)     │
-          │   Nodemailer (Email)     │
-          │   Vercel Analytics       │
-          └──────────────────────────┘
+
+### Database Schema (16 Tables)
+
+```mermaid
+erDiagram
+    APP_USERS ||--o{ USER_SESSIONS : creates
+    APP_USERS ||--o{ GAME_SCORE : achieves
+    APP_USERS ||--o{ LEADERBOARD : ranks
+    
+    GAMES ||--o{ GAME_SCORE : tracks
+    GAMES ||--o{ ARENA_QUESTIONS : contains
+    
+    COMPANY_TESTS ||--o{ TEST_SESSIONS : hosts
+    TEST_SESSIONS ||--o{ WARNING_LOGS : generates
+    
+    APP_USERS {
+        int user_id PK
+        string email UK
+        string password_hash
+        enum role "student|company|admin"
+        timestamp created_at
+    }
+    
+    GAME_SCORE {
+        int score_id PK
+        int user_id FK
+        int game_id FK
+        int score
+        int time_taken
+        timestamp completed_at
+    }
+    
+    LEADERBOARD {
+        int user_id FK
+        int rank
+        int total_score
+        timestamp updated_at
+    }
+    
+    GAMES {
+        int game_id PK
+        string slug UK
+        string title
+        enum category
+    }
+    
+    COMPANY_TESTS {
+        int test_id PK
+        int company_id FK
+        string test_name
+        int time_limit
+    }
+    
+    TEST_SESSIONS {
+        int session_id PK
+        int test_id FK
+        int user_id FK
+        enum status
+        int score
+    }
+    
+    WARNING_LOGS {
+        int log_id PK
+        int session_id FK
+        enum warning_type
+        timestamp timestamp
+    }
+    
+    ARENA_QUESTIONS {
+        int question_id PK
+        int game_id FK
+        string question_text
+        json options
+    }
+```
+
+### IAM Authentication Flow
+
+```mermaid
+sequenceDiagram
+    participant User as User
+    participant Vercel as Vercel Function
+    participant OIDC as Vercel OIDC
+    participant STS as AWS STS
+    participant RDS_Signer as RDS Signer
+    participant Aurora as Aurora PostgreSQL
+    
+    User->>Vercel: POST /api/auth/signin
+    Vercel->>OIDC: Request VERCEL_OIDC_TOKEN
+    OIDC-->>Vercel: OIDC Token
+    Vercel->>STS: Exchange token for AWS credentials
+    STS-->>Vercel: Temporary AWS credentials
+    Vercel->>RDS_Signer: Generate IAM token (15-min TTL)
+    RDS_Signer-->>Vercel: Short-lived token
+    Vercel->>Aurora: Connect with IAM token
+    Aurora->>Aurora: Validate IAM signature
+    Aurora-->>Vercel: ✓ Connection established
+    Vercel->>Aurora: SELECT * FROM app_users WHERE email=$1
+    Aurora-->>Vercel: User record
+    Vercel-->>User: Set HttpOnly Cookie + Redirect
 ```
 
 ### Why Two AWS Databases?
